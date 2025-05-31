@@ -1,0 +1,654 @@
+{% extends "base.html" %}
+
+{% block title %}Администраторски панел - МГ LIVE{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+        color: white;
+        padding: 40px 0;
+        margin-bottom: 30px;
+    }
+
+    .dashboard-title {
+        font-size: 2.5rem;
+        font-weight: 300;
+        margin-bottom: 10px;
+    }
+
+    .dashboard-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    .stats-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        height: 100%;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    .stats-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        display: block;
+    }
+
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .stats-label {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .stats-card.primary { border-left: 5px solid #3498db; }
+    .stats-card.primary .stats-icon { color: #3498db; }
+
+    .stats-card.success { border-left: 5px solid #27ae60; }
+    .stats-card.success .stats-icon { color: #27ae60; }
+
+    .stats-card.warning { border-left: 5px solid #f39c12; }
+    .stats-card.warning .stats-icon { color: #f39c12; }
+
+    .stats-card.danger { border-left: 5px solid #e74c3c; }
+    .stats-card.danger .stats-icon { color: #e74c3c; }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #2c3e50;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .action-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        border: none;
+        height: 100%;
+    }
+
+    .action-card:hover {
+        transform: translateY(-3px);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .action-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        color: #3498db;
+    }
+
+    .action-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: #2c3e50;
+    }
+
+    .action-description {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .table-header {
+        background: #f8f9fa;
+        padding: 20px 25px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .table-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 0;
+        color: #2c3e50;
+    }
+
+    .custom-table {
+        margin: 0;
+    }
+
+    .custom-table th {
+        background: #f8f9fa;
+        border: none;
+        font-weight: 600;
+        color: #2c3e50;
+        padding: 15px 20px;
+    }
+
+    .custom-table td {
+        border: none;
+        padding: 15px 20px;
+        vertical-align: middle;
+    }
+
+    .custom-table tbody tr {
+        border-bottom: 1px solid #f1f2f6;
+        transition: background-color 0.2s ease;
+    }
+
+    .custom-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .badge-status {
+        padding: 8px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-active {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .badge-inactive {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .badge-urgent {
+        background-color: #f8d7da;
+        color: #721c24;
+        animation: pulse 2s infinite;
+    }
+
+    .badge-normal {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+    }
+
+    .btn-action {
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-edit {
+        background-color: #3498db;
+        color: white;
+    }
+
+    .btn-edit:hover {
+        background-color: #2980b9;
+        color: white;
+    }
+
+    .btn-delete {
+        background-color: #e74c3c;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background-color: #c0392b;
+        color: white;
+    }
+
+    .btn-toggle {
+        background-color: #f39c12;
+        color: white;
+    }
+
+    .btn-toggle:hover {
+        background-color: #e67e22;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #7f8c8d;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .quick-actions {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 1000;
+    }
+
+    .fab {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        border: none;
+        font-size: 1.5rem;
+        box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-left: 10px;
+    }
+
+    .fab:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+        color: white;
+    }
+
+    .system-status {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+
+    .status-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #f1f2f6;
+    }
+
+    .status-item:last-child {
+        border-bottom: none;
+    }
+
+    .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+
+    .status-online { background-color: #27ae60; }
+    .status-offline { background-color: #e74c3c; }
+    .status-warning { background-color: #f39c12; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .dashboard-title {
+            font-size: 2rem;
+        }
+        
+        .stats-card {
+            margin-bottom: 20px;
+        }
+        
+        .quick-actions {
+            bottom: 20px;
+            right: 20px;
+        }
+        
+        .custom-table {
+            font-size: 0.9rem;
+        }
+        
+        .custom-table th,
+        .custom-table td {
+            padding: 10px 15px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="dashboard-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="dashboard-title">
+                    <i class="fas fa-tachometer-alt me-3"></i>Администраторски панел
+                </h1>
+                <p class="dashboard-subtitle">
+                    Добре дошли в МГ LIVE - Управление на информационни дисплеи
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{{ url_for('display') }}" class="btn btn-light btn-lg">
+                    <i class="fas fa-tv me-2"></i>Към дисплея
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Статистики -->
+    <div class="row mb-5">
+        <div class="col-md-3 mb-4">
+            <div class="stats-card primary">
+                <i class="fas fa-folder stats-icon"></i>
+                <span class="stats-number">{{ stats.total_folders }}</span>
+                <span class="stats-label">Общо папки</span>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="stats-card success">
+                <i class="fas fa-images stats-icon"></i>
+                <span class="stats-number">{{ stats.total_images }}</span>
+                <span class="stats-label">Общо снимки</span>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="stats-card warning">
+                <i class="fas fa-comment stats-icon"></i>
+                <span class="stats-number">{{ stats.total_messages }}</span>
+                <span class="stats-label">Общо съобщения</span>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="stats-card danger">
+                <i class="fas fa-exclamation-triangle stats-icon"></i>
+                <span class="stats-number">{{ stats.active_messages }}</span>
+                <span class="stats-label">Активни съобщения</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Системен статус -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="section-title">
+                <i class="fas fa-heartbeat"></i>Системен статус
+            </h2>
+            <div class="system-status">
+                <div class="status-item">
+                    <div>
+                        <span class="status-indicator status-online"></span>
+                        <strong>МГ LIVE Система</strong>
+                    </div>
+                    <span class="badge badge-active">Онлайн</span>
+                </div>
+                <div class="status-item">
+                    <div>
+                        <span class="status-indicator status-online"></span>
+                        <strong>База данни</strong>
+                    </div>
+                    <span class="badge badge-active">Свързана</span>
+                </div>
+                <div class="status-item">
+                    <div>
+                        <span class="status-indicator status-online"></span>
+                        <strong>Weather API</strong>
+                    </div>
+                    <span class="badge badge-active">Работи</span>
+                </div>
+                <div class="status-item">
+                    <div>
+                        <span class="status-indicator {% if stats.active_folders > 0 %}status-online{% else %}status-warning{% endif %}"></span>
+                        <strong>Активни папки</strong>
+                    </div>
+                    <span class="badge {% if stats.active_folders > 0 %}badge-active{% else %}badge-inactive{% endif %}">
+                        {{ stats.active_folders }} / {{ stats.total_folders }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Бързи действия -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="section-title">
+                <i class="fas fa-bolt"></i>Бързи действия
+            </h2>
+        </div>
+        <div class="col-md-4 mb-4">
+            <a href="{{ url_for('admin_folders_new') }}" class="action-card">
+                <i class="fas fa-folder-plus action-icon"></i>
+                <h3 class="action-title">Нова папка</h3>
+                <p class="action-description">
+                    Създайте нова папка за снимки и настройте параметрите за показване
+                </p>
+            </a>
+        </div>
+        <div class="col-md-4 mb-4">
+            <a href="{{ url_for('admin_messages_new') }}" class="action-card">
+                <i class="fas fa-comment-plus action-icon"></i>
+                <h3 class="action-title">Ново съобщение</h3>
+                <p class="action-description">
+                    Добавете ново съобщение за бягащия текст с възможност за спешност
+                </p>
+            </a>
+        </div>
+        <div class="col-md-4 mb-4">
+            <a href="{{ url_for('admin_folders') }}" class="action-card">
+                <i class="fas fa-cog action-icon"></i>
+                <h3 class="action-title">Настройки</h3>
+                <p class="action-description">
+                    Конфигурирайте системните настройки и параметри на дисплея
+                </p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Папки -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="section-title">
+                <i class="fas fa-folder"></i>Управление на папки
+            </h2>
+            <div class="table-container">
+                <div class="table-header">
+                    <h3 class="table-title">Папки със снимки</h3>
+                </div>
+                {% if folders %}
+                <table class="table custom-table">
+                    <thead>
+                        <tr>
+                            <th>Име на папка</th>
+                            <th>Снимки</th>
+                            <th>Статус</th>
+                            <th>Приоритет</th>
+                            <th>Създадена</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for folder in folders %}
+                        <tr>
+                            <td>
+                                <strong>{{ folder.display_name }}</strong>
+                                <br><small class="text-muted">{{ folder.name }}</small>
+                            </td>
+                            <td>
+                                <span class="badge {% if folder.image_count > 0 %}badge-active{% else %}badge-inactive{% endif %}">
+                                    {{ folder.image_count }} снимки
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge-status {% if folder.is_active %}badge-active{% else %}badge-inactive{% endif %}">
+                                    {% if folder.is_active %}Активна{% else %}Неактивна{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ folder.priority }}</td>
+                            <td>{{ folder.created_at.strftime('%d.%m.%Y') }}</td>
+                            <td>
+                                <a href="{{ url_for('admin_folders_edit', folder_id=folder.id) }}" class="btn-action btn-edit me-1" title="Редактиране">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{{ url_for('admin_folder_images', folder_id=folder.id) }}" class="btn-action btn-toggle me-1" title="Снимки">
+                                    <i class="fas fa-images"></i>
+                                </a>
+                                <a href="{{ url_for('admin_folders_toggle', folder_id=folder.id) }}" class="btn-action btn-toggle me-1" title="Превключване">
+                                    <i class="fas fa-{% if folder.is_active %}pause{% else %}play{% endif %}"></i>
+                                </a>
+                                <a href="{{ url_for('admin_folders_delete', folder_id=folder.id) }}" class="btn-action btn-delete" title="Изтриване" onclick="return confirm('Сигурни ли сте?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <h4>Няма създадени папки</h4>
+                    <p>Започнете с добавяне на първата папка със снимки</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Съобщения -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="section-title">
+                <i class="fas fa-comment"></i>Управление на съобщения
+            </h2>
+            <div class="table-container">
+                <div class="table-header">
+                    <h3 class="table-title">Бягащи съобщения</h3>
+                </div>
+                {% if messages %}
+                <table class="table custom-table">
+                    <thead>
+                        <tr>
+                            <th>Съобщение</th>
+                            <th>Тип</th>
+                            <th>Статус</th>
+                            <th>Създадено</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for message in messages %}
+                        <tr>
+                            <td>
+                                <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">
+                                    {{ message.text[:100] }}{% if message.text|length > 100 %}...{% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge-status {% if message.is_urgent %}badge-urgent{% else %}badge-normal{% endif %}">
+                                    {% if message.is_urgent %}Спешно{% else %}Нормално{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge-status {% if message.is_active and message.is_current() %}badge-active{% else %}badge-inactive{% endif %}">
+                                    {% if message.is_active and message.is_current() %}Активно{% else %}Неактивно{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ message.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                            <td>
+                                <a href="{{ url_for('admin_messages_edit', message_id=message.id) }}" class="btn-action btn-edit me-1" title="Редактиране">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{{ url_for('admin_messages_toggle', message_id=message.id) }}" class="btn-action btn-toggle me-1" title="Превключване">
+                                    <i class="fas fa-{% if message.is_active %}pause{% else %}play{% endif %}"></i>
+                                </a>
+                                <a href="{{ url_for('admin_messages_delete', message_id=message.id) }}" class="btn-action btn-delete" title="Изтриване" onclick="return confirm('Сигурни ли сте?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-comment-slash"></i>
+                    <h4>Няма създадени съобщения</h4>
+                    <p>Добавете първото съобщение за бягащия текст</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Action Buttons -->
+<div class="quick-actions">
+    <a href="{{ url_for('admin_messages_new') }}" class="fab" title="Ново съобщение">
+        <i class="fas fa-comment-plus"></i>
+    </a>
+    <a href="{{ url_for('admin_folders_new') }}" class="fab" title="Нова папка">
+        <i class="fas fa-folder-plus"></i>
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Автоматично обновяване на статистиките
+    function updateStats() {
+        // Тук можем да добавим AJAX заявка за обновяване на статистиките
+        console.log('Обновяване на статистиките...');
+    }
+
+    // Обновяваме статистиките на всеки 30 секунди
+    setInterval(updateStats, 30000);
+
+    // Анимация на статистическите карти
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.animation = 'slideInUp 0.6s ease-out';
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.stats-card').forEach(card => {
+        observer.observe(card);
+    });
+
+    console.log('Dashboard инициализиран успешно');
+});
+</script>
+{% endblock %}

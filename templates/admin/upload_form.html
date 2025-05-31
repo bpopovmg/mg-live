@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Качване на снимки - {{ folder.display_name }} - МГ LIVE</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: #343a40 !important;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.4rem;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #27ae60 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+
+        .upload-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .upload-header {
+            background: #f8f9fa;
+            padding: 20px 25px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .upload-body {
+            padding: 30px;
+        }
+
+        .drop-zone {
+            border: 3px dashed #3498db;
+            border-radius: 15px;
+            padding: 60px 20px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: #27ae60;
+            background: #e8f5e8;
+            transform: scale(1.02);
+        }
+
+        .drop-zone-icon {
+            font-size: 4rem;
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+
+        .drop-zone.dragover .drop-zone-icon {
+            color: #27ae60;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 10px;
+            background: #f8f9fa;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .file-icon {
+            color: #27ae60;
+            margin-right: 10px;
+        }
+
+        .file-info {
+            flex-grow: 1;
+        }
+
+        .file-size {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+
+        .remove-file {
+            color: #e74c3c;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .btn-upload {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-upload:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+            color: white;
+        }
+
+        .btn-upload:disabled {
+            background: #6c757d;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel:hover {
+            background: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+
+        .upload-tips {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .upload-progress {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .progress {
+            height: 8px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('display') }}">
+                <i class="fas fa-tv me-2"></i>МГ LIVE
+            </a>
+            
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                    <i class="fas fa-tachometer-alt me-1"></i>Табло
+                </a>
+                <a class="nav-link" href="{{ url_for('admin_folders') }}">
+                    <i class="fas fa-folder me-1"></i>Папки
+                </a>
+                <a class="nav-link" href="{{ url_for('admin_folder_images', folder_id=folder.id) }}">
+                    <i class="fas fa-images me-1"></i>{{ folder.display_name }}
+                </a>
+                <a class="nav-link" href="{{ url_for('admin_logout') }}">
+                    <i class="fas fa-sign-out-alt me-1"></i>Изход
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-3">
+                {% for category, message in messages %}
+                    <div class="alert alert-{% if category == 'error' %}danger{% elif category == 'success' %}success{% elif category == 'warning' %}warning{% else %}info{% endif %} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <h1>
+                <i class="fas fa-upload me-3"></i>Качване на снимки
+            </h1>
+            <p>Добавете нови изображения в папка "{{ folder.display_name }}"</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="upload-container">
+            <div class="upload-header">
+                <h3>
+                    <i class="fas fa-folder me-2"></i>{{ folder.display_name }}
+                    <span class="badge bg-primary ms-2">{{ folder.image_count }} снимки</span>
+                </h3>
+            </div>
+            
+            <div class="upload-body">
+                <div class="upload-tips">
+                    <strong>Позволени формати:</strong> JPG, JPEG, PNG, GIF, WEBP<br>
+                    <strong>Максимален размер:</strong> 10MB на файл<br>
+                    <strong>Съвет:</strong> Можете да изберете множество файлове наведнъж или да ги плъзнете тук
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                    <div class="drop-zone" id="dropZone">
+                        <input type="file" class="file-input" id="fileInput" name="files" 
+                               multiple accept=".jpg,.jpeg,.png,.gif,.webp">
+                        <div class="drop-zone-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h4>Плъзнете файловете тук</h4>
+                        <p>или кликнете за избор на файлове</p>
+                        <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('fileInput').click()">
+                            <i class="fas fa-file-image me-2"></i>Избери файлове
+                        </button>
+                    </div>
+
+                    <div id="fileListContainer" style="display: none;">
+                        <h5 class="mt-4 mb-3">Избрани файлове:</h5>
+                        <div class="file-list" id="fileList">
+                            <!-- Файловете ще се показват тук -->
+                        </div>
+                    </div>
+
+                    <div class="upload-progress" id="uploadProgress">
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 style="width: 0%"></div>
+                        </div>
+                        <small class="text-muted mt-1 d-block">Качване на файлове...</small>
+                    </div>
+
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn-upload" id="uploadBtn" disabled>
+                            <i class="fas fa-upload me-2"></i>Качи снимките
+                        </button>
+                        
+                        <a href="{{ url_for('admin_folder_images', folder_id=folder.id) }}" class="btn-cancel">
+                            <i class="fas fa-times me-2"></i>Отказ
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const fileListContainer = document.getElementById('fileListContainer');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadForm = document.getElementById('uploadForm');
+        const uploadProgress = document.getElementById('uploadProgress');
+        
+        let selectedFiles = [];
+
+        // Drag and drop functionality
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            
+            const files = Array.from(e.dataTransfer.files);
+            handleFiles(files);
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            handleFiles(files);
+        });
+
+        function handleFiles(files) {
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            const maxSize = 10 * 1024 * 1024; // 10MB
+
+            files.forEach(file => {
+                if (!allowedTypes.includes(file.type)) {
+                    alert(`Файлът ${file.name} не е позволен формат!`);
+                    return;
+                }
+
+                if (file.size > maxSize) {
+                    alert(`Файлът ${file.name} е твърде голям (над 10MB)!`);
+                    return;
+                }
+
+                // Check if file already selected
+                if (!selectedFiles.find(f => f.name === file.name && f.size === file.size)) {
+                    selectedFiles.push(file);
+                }
+            });
+
+            updateFileList();
+            updateUploadButton();
+        }
+
+        function updateFileList() {
+            if (selectedFiles.length === 0) {
+                fileListContainer.style.display = 'none';
+                return;
+            }
+
+            fileListContainer.style.display = 'block';
+            fileList.innerHTML = '';
+
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                
+                const sizeText = formatFileSize(file.size);
+                
+                fileItem.innerHTML = `
+                    <i class="fas fa-file-image file-icon"></i>
+                    <div class="file-info">
+                        <div>${file.name}</div>
+                        <div class="file-size">${sizeText}</div>
+                    </div>
+                    <i class="fas fa-times remove-file" onclick="removeFile(${index})"></i>
+                `;
+                
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+            updateUploadButton();
+        }
+
+        function updateUploadButton() {
+            uploadBtn.disabled = selectedFiles.length === 0;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Form submission with progress
+        uploadForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            if (selectedFiles.length === 0) {
+                alert('Моля изберете файлове за качване!');
+                return;
+            }
+
+            const formData = new FormData();
+            selectedFiles.forEach(file => {
+                formData.append('files', file);
+            });
+
+            uploadProgress.style.display = 'block';
+            uploadBtn.disabled = true;
+
+            fetch(uploadForm.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = "{{ url_for('admin_folder_images', folder_id=folder.id) }}";
+                } else {
+                    throw new Error('Upload failed');
+                }
+            })
+            .catch(error => {
+                alert('Грешка при качване на файловете!');
+                uploadProgress.style.display = 'none';
+                uploadBtn.disabled = false;
+            });
+        });
+    </script>
+</body>
+</html>

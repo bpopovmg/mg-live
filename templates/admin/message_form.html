@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if action == 'new' %}Ново съобщение{% else %}Редактиране на съобщение{% endif %} - МГ LIVE</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+        }
+
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: #343a40 !important;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.4rem;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 5px;
+        }
+
+        .page-subtitle {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+            outline: none;
+        }
+
+        .form-control.large {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-check {
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .form-check:hover {
+            border-color: #3498db;
+            background-color: #f8f9fa;
+        }
+
+        .form-check-input:checked {
+            background-color: #3498db;
+            border-color: #3498db;
+        }
+
+        .form-check-label {
+            font-weight: 600;
+            color: #2c3e50;
+            cursor: pointer;
+        }
+
+        .priority-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .priority-option {
+            position: relative;
+        }
+
+        .priority-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .priority-option label {
+            display: block;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .priority-option input[type="radio"]:checked + label {
+            border-color: #3498db;
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .priority-0 label { border-left: 5px solid #95a5a6; }
+        .priority-0 input:checked + label { border-left: 5px solid #95a5a6; background-color: #f8f9fa; }
+
+        .priority-1 label { border-left: 5px solid #3498db; }
+        .priority-1 input:checked + label { border-left: 5px solid #3498db; background-color: #e3f2fd; }
+
+        .priority-2 label { border-left: 5px solid #f39c12; }
+        .priority-2 input:checked + label { border-left: 5px solid #f39c12; background-color: #fff3cd; }
+
+        .priority-3 label { border-left: 5px solid #e74c3c; }
+        .priority-3 input:checked + label { border-left: 5px solid #e74c3c; background-color: #f8d7da; }
+
+        .btn-save {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+            color: white;
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            min-width: 150px;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-cancel:hover {
+            background: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .alert {
+            border: none;
+            border-radius: 10px;
+        }
+
+        .breadcrumb {
+            background: none;
+            padding: 0;
+            margin-bottom: 0;
+        }
+
+        .breadcrumb-item a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+        }
+
+        .breadcrumb-item a:hover {
+            color: white;
+        }
+
+        .breadcrumb-item.active {
+            color: rgba(255,255,255,0.9);
+        }
+
+        .help-text {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .char-counter {
+            font-size: 0.85rem;
+            color: #6c757d;
+            text-align: right;
+            margin-top: 5px;
+        }
+
+        .preview-box {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+            margin-top: 15px;
+        }
+
+        .preview-text {
+            display: inline-block;
+            animation: scroll-preview 10s linear infinite;
+        }
+
+        .urgent-preview {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .urgent-preview::before {
+            content: "● ";
+            animation: blink 1s infinite;
+        }
+
+        @keyframes scroll-preview {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 25px;
+                margin: 15px;
+            }
+            
+            .priority-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('display') }}">
+                <i class="fas fa-tv me-2"></i>МГ LIVE
+            </a>
+            
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                    <i class="fas fa-tachometer-alt me-1"></i>Табло
+                </a>
+                <a class="nav-link" href="{{ url_for('admin_logout') }}">
+                    <i class="fas fa-sign-out-alt me-1"></i>Изход
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-3">
+                {% for category, message in messages %}
+                    <div class="alert alert-{% if category == 'error' %}danger{% elif category == 'success' %}success{% elif category == 'warning' %}warning{% else %}info{% endif %} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Табло</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_messages') }}">Съобщения</a></li>
+                    <li class="breadcrumb-item active">
+                        {% if action == 'new' %}Ново съобщение{% else %}Редактиране{% endif %}
+                    </li>
+                </ol>
+            </nav>
+            <h1 class="page-title">
+                <i class="fas fa-{% if action == 'new' %}plus{% else %}edit{% endif %} me-3"></i>
+                {% if action == 'new' %}Ново съобщение{% else %}Редактиране на съобщение{% endif %}
+            </h1>
+            <p class="page-subtitle">
+                {% if action == 'new' %}Създайте ново съобщение за бягащия текст{% else %}Редактирайте съобщението{% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="form-container">
+            <form method="POST" id="messageForm">
+                <!-- Основна информация -->
+                <div class="form-section">
+                    <h4><i class="fas fa-comment-alt"></i>Основна информация</h4>
+                    
+                    <div class="mb-3">
+                        <label for="text" class="form-label">Текст на съобщението *</label>
+                        <textarea class="form-control large" 
+                                  id="text" 
+                                  name="text" 
+                                  placeholder="Въведете текста на съобщението..."
+                                  required 
+                                  maxlength="500">{% if message %}{{ message.text }}{% endif %}</textarea>
+                        <div class="char-counter">
+                            <span id="charCount">{% if message %}{{ message.text|length }}{% else %}0{% endif %}</span>/500 символа
+                        </div>
+                        <div class="help-text">
+                            Съобщението ще се показва като бягащ текст в долната част на дисплея
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Настройки -->
+                <div class="form-section">
+                    <h4><i class="fas fa-cogs"></i>Настройки</h4>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Тип съобщение</label>
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       id="is_urgent" 
+                                       name="is_urgent"
+                                       {% if message and message.is_urgent %}checked{% endif %}>
+                                <label class="form-check-label" for="is_urgent">
+                                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                    Спешно съобщение
+                                </label>
+                                <div class="help-text">
+                                    Спешните съобщения се показват в червено с мигаща точка
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="priority" class="form-label">Приоритет</label>
+                            <div class="priority-selector">
+                                <div class="priority-option priority-0">
+                                    <input type="radio" id="priority_0" name="priority" value="0" 
+                                           {% if not message or message.priority == 0 %}checked{% endif %}>
+                                    <label for="priority_0">
+                                        <div>Нисък</div>
+                                        <small>0</small>
+                                    </label>
+                                </div>
+                                <div class="priority-option priority-1">
+                                    <input type="radio" id="priority_1" name="priority" value="1"
+                                           {% if message and message.priority == 1 %}checked{% endif %}>
+                                    <label for="priority_1">
+                                        <div>Нормален</div>
+                                        <small>1</small>
+                                    </label>
+                                </div>
+                                <div class="priority-option priority-2">
+                                    <input type="radio" id="priority_2" name="priority" value="2"
+                                           {% if message and message.priority == 2 %}checked{% endif %}>
+                                    <label for="priority_2">
+                                        <div>Висок</div>
+                                        <small>2</small>
+                                    </label>
+                                </div>
+                                <div class="priority-option priority-3">
+                                    <input type="radio" id="priority_3" name="priority" value="3"
+                                           {% if message and message.priority == 3 %}checked{% endif %}>
+                                    <label for="priority_3">
+                                        <div>Критичен</div>
+                                        <small>3</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="help-text">
+                                По-високият приоритет означава, че съобщението ще се показва по-често
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Период на показване -->
+                <div class="form-section">
+                    <h4><i class="fas fa-calendar-alt"></i>Период на показване</h4>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="start_date" class="form-label">Начална дата</label>
+                            <input type="datetime-local" 
+                                   class="form-control" 
+                                   id="start_date" 
+                                   name="start_date"
+                                   value="{% if message and message.start_date %}{{ message.start_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+                            <div class="help-text">
+                                Оставете празно за веднага
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="end_date" class="form-label">Крайна дата</label>
+                            <input type="datetime-local" 
+                                   class="form-control" 
+                                   id="end_date" 
+                                   name="end_date"
+                                   value="{% if message and message.end_date %}{{ message.end_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+                            <div class="help-text">
+                                Оставете празно за безсрочно
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Преглед -->
+                <div class="form-section">
+                    <h4><i class="fas fa-eye"></i>Преглед</h4>
+                    <div class="preview-box">
+                        <div class="preview-text" id="previewText">
+                            {% if message %}{{ message.text }}{% else %}Въведете текст за преглед...{% endif %}
+                        </div>
+                    </div>
+                    <div class="help-text">
+                        Така ще изглежда съобщението на дисплея
+                    </div>
+                </div>
+
+                <!-- Бутони -->
+                <div class="button-group">
+                    <button type="submit" class="btn-save">
+                        <i class="fas fa-save me-2"></i>
+                        {% if action == 'new' %}Създай съобщение{% else %}Запази промените{% endif %}
+                    </button>
+                    <a href="{{ url_for('admin_messages') }}" class="btn-cancel">
+                        <i class="fas fa-times me-2"></i>Отказ
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const textInput = document.getElementById('text');
+        const charCount = document.getElementById('charCount');
+        const previewText = document.getElementById('previewText');
+        const urgentCheckbox = document.getElementById('is_urgent');
+        
+        // Брояч на символи
+        function updateCharCount() {
+            const count = textInput.value.length;
+            charCount.textContent = count;
+            
+            if (count > 450) {
+                charCount.style.color = '#e74c3c';
+            } else if (count > 400) {
+                charCount.style.color = '#f39c12';
+            } else {
+                charCount.style.color = '#6c757d';
+            }
+        }
+        
+        // Преглед на текста
+        function updatePreview() {
+            const text = textInput.value.trim() || 'Въведете текст за преглед...';
+            const isUrgent = urgentCheckbox.checked;
+            
+            previewText.textContent = text;
+            previewText.className = isUrgent ? 'preview-text urgent-preview' : 'preview-text';
+        }
+        
+        // Event listeners
+        textInput.addEventListener('input', function() {
+            updateCharCount();
+            updatePreview();
+        });
+        
+        urgentCheckbox.addEventListener('change', updatePreview);
+        
+        // Инициализация
+        updateCharCount();
+        updatePreview();
+        
+        // Фокус на текстовото поле
+        textInput.focus();
+        
+        console.log('Message form инициализирана');
+    });
+    </script>
+</body>
+</html>

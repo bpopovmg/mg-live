@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>МГ LIVE - Информационен дисплей</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Slideshow контейнер */
+        .slideshow-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide.active {
+            opacity: 1;
+        }
+
+        .slide-content {
+            text-align: center;
+            color: white;
+            background: rgba(0,0,0,0.5);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .slide img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        /* Плейсхолдър ако няма снимки */
+        .no-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: white;
+            text-align: center;
+        }
+
+        .no-content h1 {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .no-content p {
+            font-size: 1.5rem;
+            opacity: 0.9;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* Информационен панел */
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: right;
+            z-index: 20;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .clock {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .date {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .weather {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .weather-temp {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #4FC3F7;
+        }
+
+        /* Бягащ текст */
+        .running-text {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            z-index: 30;
+            border-top: 3px solid #3498db;
+        }
+
+        .text-content {
+            display: inline-block;
+            padding-left: 100%;
+            animation: scroll-left 30s linear infinite;
+            font-size: 1.3rem;
+            font-weight: 500;
+        }
+
+        .urgent-message {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .urgent-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background-color: #ff6b6b;
+            border-radius: 50%;
+            margin-right: 10px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes scroll-left {
+            0% { transform: translate3d(100%, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* Responsive дизайн */
+        @media (max-width: 768px) {
+            .info-panel {
+                top: 10px;
+                right: 10px;
+                padding: 15px;
+            }
+            
+            .clock {
+                font-size: 2rem;
+            }
+            
+            .text-content {
+                font-size: 1.1rem;
+            }
+            
+            .no-content h1 {
+                font-size: 2.5rem;
+            }
+            
+            .no-content p {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Slideshow контейнер -->
+    <div class="slideshow-container" id="slideshow">
+        {% if slideshow_data %}
+            {% for image in slideshow_data %}
+            <div class="slide">
+                <img src="{{ image.url }}" alt="{{ image.caption }}">
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-content">
+                <div>
+                    <h1>🖥️ МГ LIVE</h1>
+                    <p>Математическа гимназия "Атанас Радев" - Ямбол</p>
+                    <br>
+                    <p>Информационната система се зарежда...</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Информационен панел -->
+    <div class="info-panel">
+        <div class="clock" id="clock">00:00:00</div>
+        <div class="date" id="date">Loading...</div>
+        <div class="weather">
+            <div class="weather-temp" id="temperature">22°C</div>
+            <div id="weather-desc">Слънчево</div>
+        </div>
+    </div>
+
+    <!-- Бягащ текст -->
+    {% if messages %}
+        <div class="running-text">
+            <div class="text-content" id="runningText">
+                {% for message in messages %}
+                    {% if message.is_urgent %}
+                        <span class="urgent-message">
+                            <span class="urgent-dot"></span>{{ message.text }}
+                        </span>
+                    {% else %}
+                        {{ message.text }}
+                    {% endif %}
+                    {% if not loop.last %} • • • {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <script>
+    // Глобални променливи
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    
+    // Slideshow функционалност
+    function showSlide(index) {
+        slides.forEach((slide, i) => {
+            slide.classList.toggle('active', i === index);
+        });
+    }
+    
+    function nextSlide() {
+        if (slides.length > 0) {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        }
+    }
+    
+    // Часовник и дата
+    function updateDateTime() {
+        const now = new Date();
+        
+        // Часовник
+        const timeString = now.toLocaleTimeString('bg-BG', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        document.getElementById('clock').textContent = timeString;
+        
+        // Дата
+        const dateString = now.toLocaleDateString('bg-BG', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+        document.getElementById('date').textContent = dateString;
+    }
+    
+    // Зареждане на времето
+    function loadWeather() {
+        fetch('/api/weather')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.error) {
+                    document.getElementById('temperature').textContent = `${data.temperature}°C`;
+                    document.getElementById('weather-desc').textContent = data.description;
+                }
+            })
+            .catch(error => {
+                console.log('Weather API error:', error);
+                // Запазваме статичните данни при грешка
+            });
+    }
+    
+    // Обновяване на съобщенията
+    function updateMessages() {
+        fetch('/api/messages')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.error && data.length > 0) {
+                    const runningTextElement = document.getElementById('runningText');
+                    if (runningTextElement) {
+                        let messagesText = '';
+                        data.forEach((message, index) => {
+                            if (message.is_urgent) {
+                                messagesText += `<span class="urgent-message"><span class="urgent-dot"></span>${message.text}</span>`;
+                            } else {
+                                messagesText += message.text;
+                            }
+                            if (index < data.length - 1) {
+                                messagesText += ' • • • ';
+                            }
+                        });
+                        runningTextElement.innerHTML = messagesText;
+                    }
+                }
+            })
+            .catch(error => {
+                console.log('Messages API error:', error);
+            });
+    }
+    
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('МГ LIVE дисплей зареден');
+        
+        // Започваме slideshow
+        if (slides.length > 0) {
+            showSlide(0);
+            setInterval(nextSlide, 5000); // Сменя слайдовете на всеки 5 секунди
+        }
+        
+        // Стартираме часовника
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+        
+        // Зареждаме времето
+        loadWeather();
+        setInterval(loadWeather, 600000); // Обновява времето на всеки 10 минути
+        
+        // Обновяваме съобщенията
+        updateMessages();
+        setInterval(updateMessages, 30000); // Обновява съобщенията на всеки 30 секунди
+    });
+    </script>
+</body>
+</html>
